@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createJobDescription } from "@/lib/jobs.functions";
+import { ACCEPTED_DOC_TYPES, ExtractError, extractTextFromFile } from "@/lib/extract-text";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: () => ({
