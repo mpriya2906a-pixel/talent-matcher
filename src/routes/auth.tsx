@@ -38,6 +38,27 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const prepareDemo = useServerFn(ensureDemoAccount);
+
+  async function quickLogin() {
+    setDemoBusy(true);
+    try {
+      const demo = await prepareDemo({ data: undefined });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: demo.email,
+        password: demo.password,
+      });
+      if (error) throw error;
+      toast.success(demo.seeded ? "Demo workspace ready" : "Signed in to the demo workspace");
+      router.navigate({ to: "/dashboard" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Quick login failed");
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
