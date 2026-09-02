@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Brain, ListOrdered, ScanSearch, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { QuickLoginButton } from "@/components/quick-login-button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -82,13 +83,14 @@ function Landing() {
             every score is backed by matched skills, missing skills and a written rationale.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/auth">Start screening</Link>
-            </Button>
+            <QuickLoginButton label="Try the live demo" />
             <Button asChild size="lg" variant="outline">
               <Link to="/auth">Recruiter sign in</Link>
             </Button>
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            No signup needed — the demo workspace comes pre-loaded with scored candidates.
+          </p>
         </motion.section>
 
         <section className="mt-20 grid gap-4 md:grid-cols-3">

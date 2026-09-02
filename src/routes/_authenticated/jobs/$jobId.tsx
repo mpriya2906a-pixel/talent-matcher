@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SectionSkeleton } from "@/components/section-skeleton";
+import { RankedCandidates, rankedCandidatesQuery } from "@/components/ranked-candidates";
 import {
   deleteJobDescription,
   getJobDescription,
@@ -47,7 +48,12 @@ export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  loader: ({ context, params }) => context.queryClient.ensureQueryData(jobQuery(params.jobId)),
+  loader: async ({ context, params }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(jobQuery(params.jobId)),
+      context.queryClient.ensureQueryData(rankedCandidatesQuery(params.jobId)),
+    ]);
+  },
   component: JobDetailPage,
   pendingComponent: () => <SectionSkeleton />,
   errorComponent: ({ error }) => (
@@ -228,6 +234,8 @@ function JobDetailPage() {
           </div>
         </div>
       </div>
+
+      <RankedCandidates jobId={jobId} />
 
       <details className="surface-card p-5">
         <summary className="cursor-pointer text-sm font-medium">Original JD text</summary>

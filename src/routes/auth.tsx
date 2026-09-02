@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureDemoAccount } from "@/lib/demo.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -36,6 +38,27 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const prepareDemo = useServerFn(ensureDemoAccount);
+
+  async function quickLogin() {
+    setDemoBusy(true);
+    try {
+      const demo = await prepareDemo({ data: undefined });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: demo.email,
+        password: demo.password,
+      });
+      if (error) throw error;
+      toast.success(demo.seeded ? "Demo workspace ready" : "Signed in to the demo workspace");
+      router.navigate({ to: "/dashboard" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Quick login failed");
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -93,7 +116,40 @@ function AuthPage() {
           </div>
         </div>
 
-        <form onSubmit={submit} className="mt-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.08 }}
+          className="mt-6"
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={quickLogin}
+            disabled={demoBusy || busy}
+          >
+            {demoBusy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Zap className="size-4 text-primary" />
+            )}
+            {demoBusy ? "Preparing demo workspace…" : "Quick login with demo data"}
+          </Button>
+          <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+            Instantly signs you in as a demo recruiter with 3 job descriptions and 10 screened
+            resumes already scored.
+          </p>
+          <div className="mt-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
+              or use your account
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+        </motion.div>
+
+        <form onSubmit={submit} className="mt-5 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input

@@ -214,3 +214,41 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       recentCandidates: candidates ?? [],
     };
   });
+
+export const listRankedCandidates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { jobId: string }) =>
+    z.object({ jobId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: candidates, error } = await context.supabase
+      .from("candidates")
+      .select("id, full_name, email, parsed_skills, total_experience_years, status")
+      .eq("job_description_id", data.jobId);
+    if (error) throw new Error(error.message);
+
+    const { data: results, error: matchError } = await context.supabase
+      .from("match_results")
+      .select("*")
+      .eq("job_description_id", data.jobId);
+    if (matchError) throw new Error(matchError.message);
+
+    const byCandidate = new Map((results ?? []).map((r) => [r.candidate_id, r]));
+
+    return (candidates ?? [])
+      .map((candidate) => {
+        const match = byCandidate.get(candidate.id) ?? null;
+        return {
+          ...candidate,
+          overall_score: match ? Number(match.overall_score) : null,
+          keyword_score: match?.keyword_score === null || match === null ? null : Number(match.keyword_score),
+          semantic_score: match?.semantic_score === null || match === null ? null : Number(match.semantic_score),
+          matched_skills: match?.matched_skills ?? [],
+          missing_skills: match?.missing_skills ?? [],
+          ai_summary: match?.ai_summary ?? null,
+          strengths: match?.strengths ?? null,
+          concerns: match?.concerns ?? null,
+        };
+      })
+      .sort((a, b) => (b.overall_score ?? -1) - (a.overall_score ?? -1));
+  });
