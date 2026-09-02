@@ -13,7 +13,7 @@ const NAV = [
   { to: "/jobs", label: "Job descriptions", icon: Briefcase },
 ] as const;
 
-export function AppShell({ children, email }: { children: ReactNode; email?: string }) {
+export function AppShell({ children, email }: { children: ReactNode; email?: string | undefined }) {
   const router = useRouter();
 
   async function signOut() {
