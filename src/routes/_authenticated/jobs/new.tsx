@@ -42,6 +42,33 @@ function NewJobPage() {
   const [company, setCompany] = useState("");
   const [rawText, setRawText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function ingestFile(file: File) {
+    setReading(true);
+    try {
+      const text = await extractTextFromFile(file);
+      setRawText(text);
+      setFileName(file.name);
+      if (!title.trim()) {
+        setTitle(file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").slice(0, 80));
+      }
+      toast.success(`Read ${text.length.toLocaleString()} characters from ${file.name}`);
+    } catch (error) {
+      toast.error(
+        error instanceof ExtractError
+          ? error.message
+          : "Could not read that file. Paste the text instead.",
+      );
+    } finally {
+      setReading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
