@@ -141,6 +141,74 @@ function NewJobPage() {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <Label>Upload the job description file</Label>
+          <motion.div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) void ingestFile(file);
+            }}
+            onClick={() => inputRef.current?.click()}
+            animate={{ scale: dragging ? 1.01 : 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors ${
+              dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/60"
+            }`}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept={ACCEPTED_DOC_TYPES}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void ingestFile(file);
+              }}
+            />
+            {reading ? (
+              <Loader2 className="size-6 animate-spin text-primary" />
+            ) : (
+              <Upload className="size-6 text-muted-foreground" />
+            )}
+            <p className="text-sm font-medium">
+              {reading ? "Reading file…" : "Drop a PDF, DOCX or TXT here"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              or click to browse — max 5MB. The text lands in the box below for review.
+            </p>
+          </motion.div>
+
+          {fileName ? (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+            >
+              <FileText className="size-4 text-primary" />
+              <span className="truncate">{fileName}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="ml-auto size-7"
+                onClick={() => {
+                  setFileName(null);
+                  setRawText("");
+                }}
+              >
+                <X className="size-4" />
+              </Button>
+            </motion.div>
+          ) : null}
+        </div>
+
         <div className="space-y-1.5">
           <Label htmlFor="raw">Job description text</Label>
           <Textarea
