@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createJobDescription } from "@/lib/jobs.functions";
+import { ACCEPTED_DOC_TYPES, ExtractError, extractTextFromFile } from "@/lib/extract-text";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: () => ({
@@ -41,6 +42,33 @@ function NewJobPage() {
   const [company, setCompany] = useState("");
   const [rawText, setRawText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function ingestFile(file: File) {
+    setReading(true);
+    try {
+      const text = await extractTextFromFile(file);
+      setRawText(text);
+      setFileName(file.name);
+      if (!title.trim()) {
+        setTitle(file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").slice(0, 80));
+      }
+      toast.success(`Read ${text.length.toLocaleString()} characters from ${file.name}`);
+    } catch (error) {
+      toast.error(
+        error instanceof ExtractError
+          ? error.message
+          : "Could not read that file. Paste the text instead.",
+      );
+    } finally {
+      setReading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -111,6 +139,74 @@ function NewJobPage() {
               placeholder="Acme Inc."
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Upload the job description file</Label>
+          <motion.div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) void ingestFile(file);
+            }}
+            onClick={() => inputRef.current?.click()}
+            animate={{ scale: dragging ? 1.01 : 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors ${
+              dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/60"
+            }`}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept={ACCEPTED_DOC_TYPES}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void ingestFile(file);
+              }}
+            />
+            {reading ? (
+              <Loader2 className="size-6 animate-spin text-primary" />
+            ) : (
+              <Upload className="size-6 text-muted-foreground" />
+            )}
+            <p className="text-sm font-medium">
+              {reading ? "Reading file…" : "Drop a PDF, DOCX or TXT here"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              or click to browse — max 5MB. The text lands in the box below for review.
+            </p>
+          </motion.div>
+
+          {fileName ? (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm"
+            >
+              <FileText className="size-4 text-primary" />
+              <span className="truncate">{fileName}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="ml-auto size-7"
+                onClick={() => {
+                  setFileName(null);
+                  setRawText("");
+                }}
+              >
+                <X className="size-4" />
+              </Button>
+            </motion.div>
+          ) : null}
         </div>
 
         <div className="space-y-1.5">
