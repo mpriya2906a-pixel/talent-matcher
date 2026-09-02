@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Brain, ListOrdered, ScanSearch, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { QuickLoginButton } from "@/components/quick-login-button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
