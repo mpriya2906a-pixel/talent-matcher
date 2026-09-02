@@ -116,7 +116,40 @@ function AuthPage() {
           </div>
         </div>
 
-        <form onSubmit={submit} className="mt-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.08 }}
+          className="mt-6"
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={quickLogin}
+            disabled={demoBusy || busy}
+          >
+            {demoBusy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Zap className="size-4 text-primary" />
+            )}
+            {demoBusy ? "Preparing demo workspace…" : "Quick login with demo data"}
+          </Button>
+          <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+            Instantly signs you in as a demo recruiter with 3 job descriptions and 10 screened
+            resumes already scored.
+          </p>
+          <div className="mt-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
+              or use your account
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+        </motion.div>
+
+        <form onSubmit={submit} className="mt-5 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
