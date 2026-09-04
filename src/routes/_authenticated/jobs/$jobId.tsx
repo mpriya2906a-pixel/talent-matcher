@@ -219,23 +219,13 @@ function JobDetailPage() {
             </div>
           </div>
 
-          <div className="surface-card flex flex-col items-start gap-3 p-5">
-            <div>
-              <p className="text-sm font-medium">Resume screening</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Bulk resume upload and the ranked candidate dashboard are the next build phase for
-                this role.
-              </p>
-            </div>
-            <Button size="sm" disabled>
-              <Upload className="size-4" />
-              Upload resumes (coming next)
-            </Button>
-          </div>
         </div>
       </div>
 
+      <ResumeDropzone jobId={jobId} />
+
       <RankedCandidates jobId={jobId} />
+
 
       <details className="surface-card p-5">
         <summary className="cursor-pointer text-sm font-medium">Original JD text</summary>
