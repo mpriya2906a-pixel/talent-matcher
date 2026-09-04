@@ -10,14 +10,15 @@ import {
   RefreshCw,
   Timer,
   Trash2,
-  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SectionSkeleton } from "@/components/section-skeleton";
+import { ResumeDropzone } from "@/components/resume-dropzone";
 import { RankedCandidates, rankedCandidatesQuery } from "@/components/ranked-candidates";
+
 import {
   deleteJobDescription,
   getJobDescription,
