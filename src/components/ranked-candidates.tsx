@@ -1,10 +1,22 @@
 import { useState } from "react";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Sparkles, ThumbsUp, TriangleAlert } from "lucide-react";
+import {
+  ChevronDown,
+  Download,
+  Loader2,
+  Sparkles,
+  ThumbsUp,
+  Trash2,
+  TriangleAlert,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/count-up";
 import { listRankedCandidates } from "@/lib/jobs.functions";
+import { deleteCandidate, getResumeUrl } from "@/lib/candidates.functions";
 import { scoreBand, scoreChipClass, scoreStrokeVar, scoreTextClass } from "@/lib/score";
 
 export const rankedCandidatesQuery = (jobId: string) =>
@@ -12,6 +24,57 @@ export const rankedCandidatesQuery = (jobId: string) =>
     queryKey: ["ranked-candidates", jobId],
     queryFn: () => listRankedCandidates({ data: { jobId } }),
   });
+
+function CandidateActions({ candidateId, jobId }: { candidateId: string; jobId: string }) {
+  const queryClient = useQueryClient();
+  const signUrl = useServerFn(getResumeUrl);
+  const remove = useServerFn(deleteCandidate);
+  const [busy, setBusy] = useState<"download" | "delete" | null>(null);
+
+  async function openResume() {
+    setBusy("download");
+    try {
+      const { url } = await signUrl({ data: { candidateId } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't open the resume");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function removeCandidate() {
+    if (!window.confirm("Remove this candidate and their stored resume?")) return;
+    setBusy("delete");
+    try {
+      await remove({ data: { candidateId } });
+      await queryClient.invalidateQueries({ queryKey: ["ranked-candidates", jobId] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success("Candidate removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't remove the candidate");
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={openResume} disabled={busy !== null}>
+        {busy === "download" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Download className="size-4" />
+        )}
+        Resume
+      </Button>
+      <Button variant="ghost" size="sm" onClick={removeCandidate} disabled={busy !== null}>
+        <Trash2 className="size-4" />
+        Remove
+      </Button>
+    </div>
+  );
+}
+
 
 function ScoreRing({ score }: { score: number }) {
   const band = scoreBand(score);
