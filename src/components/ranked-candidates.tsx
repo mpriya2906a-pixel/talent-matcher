@@ -187,25 +187,37 @@ export function RankedCandidates({ jobId }: { jobId: string }) {
 
                       <div className="grid gap-3 sm:grid-cols-2">
                         {candidate.strengths ? (
-                          <p className="flex gap-2 text-sm leading-relaxed">
-                            <ThumbsUp className="text-score-high mt-0.5 size-4 shrink-0" />
-                            {candidate.strengths}
-                          </p>
+                          <div>
+                            <p className="text-score-high flex items-center gap-1.5 text-xs font-medium tracking-wide uppercase">
+                              <ThumbsUp className="size-3.5" />
+                              Strengths
+                            </p>
+                            <p className="mt-1.5 text-sm leading-relaxed">{candidate.strengths}</p>
+                          </div>
                         ) : null}
                         {candidate.concerns ? (
-                          <p className="flex gap-2 text-sm leading-relaxed">
-                            <TriangleAlert className="text-score-mid mt-0.5 size-4 shrink-0" />
-                            {candidate.concerns}
-                          </p>
+                          <div>
+                            <p className="text-score-mid flex items-center gap-1.5 text-xs font-medium tracking-wide uppercase">
+                              <TriangleAlert className="size-3.5" />
+                              Concerns
+                            </p>
+                            <p className="mt-1.5 text-sm leading-relaxed">{candidate.concerns}</p>
+                          </div>
                         ) : null}
                       </div>
 
-                      {candidate.keyword_score !== null && candidate.semantic_score !== null ? (
-                        <p className="text-xs text-muted-foreground">
-                          Keyword overlap {Math.round(candidate.keyword_score)} · Contextual{" "}
-                          {Math.round(candidate.semantic_score)} · Blended {Math.round(score)}
-                        </p>
-                      ) : null}
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-3">
+                        {candidate.keyword_score !== null && candidate.semantic_score !== null ? (
+                          <p className="text-xs text-muted-foreground">
+                            Keyword overlap {Math.round(candidate.keyword_score)} · Contextual{" "}
+                            {Math.round(candidate.semantic_score)} · Blended {Math.round(score)}
+                          </p>
+                        ) : (
+                          <span />
+                        )}
+                        <CandidateActions candidateId={candidate.id} jobId={jobId} />
+                      </div>
+
                     </div>
                   </motion.div>
                 ) : null}
