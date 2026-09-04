@@ -123,7 +123,7 @@ export const screenResume = createServerFn({ method: "POST" })
         parsed_education: (parsed.education ?? null) as never,
         parsed_experience: (parsed.experience ?? null) as never,
         total_experience_years: parsed.years,
-        status: warning ? "needs_review" : "parsed",
+        status: "processing",
         error_message: warning,
       })
       .select("id, full_name")
