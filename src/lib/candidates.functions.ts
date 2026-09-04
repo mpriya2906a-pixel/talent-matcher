@@ -193,9 +193,9 @@ export const screenResume = createServerFn({ method: "POST" })
     });
     if (matchError) throw new Error(matchError.message);
 
-    if (warning === null) {
-      await supabase.from("candidates").update({ status: "scored" }).eq("id", candidate.id);
-    }
+    // A score row exists either way; error_message carries any AI degradation notice.
+    await supabase.from("candidates").update({ status: "analyzed" }).eq("id", candidate.id);
+
 
     await rerank(supabase as never, data.jobId);
 
