@@ -17,8 +17,9 @@ type Item = {
   id: string;
   name: string;
   stage: "queued" | "reading" | "uploading" | "scoring" | "done" | "error";
-  score?: number;
-  message?: string;
+  score?: number | undefined;
+  message?: string | undefined;
+
 };
 
 const STAGE_LABEL: Record<Item["stage"], string> = {
